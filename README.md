@@ -1,3 +1,7 @@
+### STEPS
+
+1. snakemake --use-conda setup --cores 4 --conda-frontend mamba
+
 # ARMOR workflow <img src="img/ARMOR.png" width="200" align="right" />
 ![snakemake-run](https://github.com/csoneson/ARMOR/workflows/snakemake-run/badge.svg)
 
