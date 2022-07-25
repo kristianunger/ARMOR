@@ -1,3 +1,4 @@
+#snakemake --cluster "sbatch --mem=64G --ntasks=8 --mail-type=ALL --partition=normal_q --time=48:00:00 --nice=100000" --jobs=48 --use-conda --rerun-incomplete
 ## Configuration file
 import os
 if len(config) == 0:
@@ -68,7 +69,7 @@ Rbin = config["Rbin"]
 rule all:
 	input:
 		os.path.join(outputdir, "MultiQC", "multiqc_report.html"),
-		os.path.join(outputdir, "outputR", "shiny_sce.rds")
+#		os.path.join(outputdir, "outputR", "shiny_sce.rds")
 
 rule setup:
 	input:
@@ -588,30 +589,30 @@ rule checkinputs:
 ## ------------------------------------------------------------------------------------ ##
 ## Differential expression
 ## ------------------------------------------------------------------------------------ ##
-rule edgeR:
-	input:
-		os.path.join(outputdir, "Rout", "pkginstall_state.txt"),
-		rds = os.path.join(outputdir, "outputR", "tximeta_se.rds"),
-		script = "scripts/run_render.R",
-		template = "scripts/edgeR_dge.Rmd"
-	output:
-		html = os.path.join(outputdir, "outputR", "edgeR_dge.html"),
-		rds = os.path.join(outputdir, "outputR", "edgeR_dge.rds")
-	params:
-		directory = lambda wildcards, input: os.path.dirname(input['rds']),   ## dirname of rds input
-		organism = config["organism"],
-		design = config["design"].replace(" ", "") if config["design"] is not None else "",
-		contrast = config["contrast"].replace(" ", "") if config["contrast"] is not None else "",
-		genesets = geneset_param,
-		Rbin = Rbin
-	log:
-		os.path.join(outputdir, "Rout", "run_dge_edgeR.Rout")
-	benchmark:
-		os.path.join(outputdir, "benchmarks", "run_dge_edgeR.txt")
-	conda:
-		Renv
-	shell:
-		'''{params.Rbin} CMD BATCH --no-restore --no-save "--args se='{input.rds}' organism='{params.organism}' design='{params.design}' contrast='{params.contrast}' {params.genesets} rmdtemplate='{input.template}' outputdir='{params.directory}' outputfile='edgeR_dge.html'" {input.script} {log}'''
+#rule edgeR:
+#	input:
+#		os.path.join(outputdir, "Rout", "pkginstall_state.txt"),
+#		rds = os.path.join(outputdir, "outputR", "tximeta_se.rds"),
+#		script = "scripts/run_render.R",
+#		template = "scripts/edgeR_dge.Rmd"
+#	output:
+#		html = os.path.join(outputdir, "outputR", "edgeR_dge.html"),
+#		rds = os.path.join(outputdir, "outputR", "edgeR_dge.rds")
+#	params:
+#		directory = lambda wildcards, input: os.path.dirname(input['rds']),   ## dirname of rds input
+#		organism = config["organism"],
+#		design = config["design"].replace(" ", "") if config["design"] is not None else "",
+#		contrast = config["contrast"].replace(" ", "") if config["contrast"] is not None else "",
+#		genesets = geneset_param,
+#		Rbin = Rbin
+#	log:
+#		os.path.join(outputdir, "Rout", "run_dge_edgeR.Rout")
+#	benchmark:
+#		os.path.join(outputdir, "benchmarks", "run_dge_edgeR.txt")
+#	conda:
+#		Renv
+#	shell:
+#		'''{params.Rbin} CMD BATCH --no-restore --no-save "--args se='{input.rds}' organism='{params.organism}' design='{params.design}' contrast='{params.contrast}' {params.genesets} rmdtemplate='{input.template}' outputdir='{params.directory}' outputfile='edgeR_dge.html'" {input.script} {log}'''
 
 ## ------------------------------------------------------------------------------------ ##
 ## Differential transcript usage
@@ -647,40 +648,40 @@ rule DRIMSeq:
 ## ------------------------------------------------------------------------------------ ##
 ## shiny app
 ## ------------------------------------------------------------------------------------ ##
-def shiny_input(wildcards):
-	input = [os.path.join(outputdir, "Rout", "pkginstall_state.txt")]
-	if config["run_STAR"]:
-		input.extend(expand(os.path.join(outputdir, "STARbigwig", "{sample}_Aligned.sortedByCoord.out.bw"), sample = samples.names.values.tolist()))
-	return input
-
-def shiny_params(wildcards):
-	param = ["".join(["outputdir='", outputdir, "outputR'"])]
-	if config["run_STAR"]:
-		param.append("".join(["bigwigdir='", outputdir, "STARbigwig'"]))
-	return param
-
+#ef shiny_input(wildcards):
+#	input = [os.path.join(outputdir, "Rout", "pkginstall_state.txt")]
+#	if config["run_STAR"]:
+#		input.extend(expand(os.path.join(outputdir, "STARbigwig", "{sample}_Aligned.sortedByCoord.out.bw"), sample = samples.names.values.tolist()))
+#	return input
+#
+#ef shiny_params(wildcards):
+#	param = ["".join(["outputdir='", outputdir, "outputR'"])]
+#	if config["run_STAR"]:
+#		param.append("".join(["bigwigdir='", outputdir, "STARbigwig'"]))
+#	return param
+#
 ## shiny
-rule shiny:
-	input:
-		shiny_input,
-		rds = os.path.join(outputdir, "outputR", "DRIMSeq_dtu.rds") if config["run_DRIMSeq"] else os.path.join(outputdir, "outputR", "edgeR_dge.rds"),
-		script = "scripts/run_render.R",
-		gtf = config["gtf"],
-		template = "scripts/prepare_shiny.Rmd"
-	output:
-		html = os.path.join(outputdir, "outputR", "prepare_shiny.html"),
-		rds = os.path.join(outputdir, "outputR", "shiny_sce.rds")
-	params:
-		p = shiny_params,
-		Rbin = Rbin
-	log:
-		os.path.join(outputdir, "Rout", "prepare_shiny.Rout")
-	benchmark:
-		os.path.join(outputdir, "benchmarks", "prepare_shiny.txt")
-	conda:
-		Renv
-	shell:
-		'''{params.Rbin} CMD BATCH --no-restore --no-save "--args se='{input.rds}' gtffile='{input.gtf}' rmdtemplate='{input.template}' outputfile='prepare_shiny.html' {params.p}" {input.script} {log}'''
+#ule shiny:
+#	input:
+#		shiny_input,
+#		rds = os.path.join(outputdir, "outputR", "DRIMSeq_dtu.rds") if config["run_DRIMSeq"] else os.path.join(outputdir, "outputR", "edgeR_dge.rds"),
+#		script = "scripts/run_render.R",
+#		gtf = config["gtf"],
+#		template = "scripts/prepare_shiny.Rmd"
+#	output:
+#		html = os.path.join(outputdir, "outputR", "prepare_shiny.html"),
+#		rds = os.path.join(outputdir, "outputR", "shiny_sce.rds")
+#	params:
+#		p = shiny_params,
+#		Rbin = Rbin
+#	log:
+#		os.path.join(outputdir, "Rout", "prepare_shiny.Rout")
+#	benchmark:
+#		os.path.join(outputdir, "benchmarks", "prepare_shiny.txt")
+#	conda:
+#		Renv
+#	shell:
+#		'''{params.Rbin} CMD BATCH --no-restore --no-save "--args se='{input.rds}' gtffile='{input.gtf}' rmdtemplate='{input.template}' outputfile='prepare_shiny.html' {params.p}" {input.script} {log}'''
 
 ## ------------------------------------------------------------------------------------ ##
 ## Success and failure messages
