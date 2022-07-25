@@ -15,7 +15,7 @@ release: 104
 
 ## Paths to existing reference files 
 ##--------------------------------------------------------------------------------------------
-txome: reference/Ensembl.GRCh38.104/Homo_sapiens.GRCh38.cdna.all.fa.gz
+txome: reference/Ensembl.GRCh38.104/Homo_sapiens.GRCh38.cdna.all.fa
 genome: reference/Ensembl.GRCh38.104/Homo_sapiens.GRCh38.dna.primary_assembly.fa
 gtf: reference/Ensembl.GRCh38.104/Homo_sapiens.GRCh38.104.gtf
 ##--------------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ STARindex: reference/STARIndex/Homo_sapiens.GRCh38.104.STAR.idx
 ##--------------------------------------------------------------------------------------------
 ## Add or remove parameters inside the ""
 additional_star_index: ""
-additional_star_align: "--sjdbGTFfile reference/Ensembl.GRCh38.104/Homo_sapiens.GRCh38.104.gtf --quantMode TranscriptomeSAM GeneCounts --outSAMattributes NH HI AS nM XS"
+additional_star_align: "--sjdbGTFfile reference/Ensembl.GRCh38.104/Homo_sapiens.GRCh38.104.gtf --quantMode TranscriptomeSAM GeneCounts --outSAMattributes NH HI AS nM XS --outSAMstrandField intronMotif"
 
 ## Additional Salmon parameters
 ## Here, you can specify any optional parameters for the index building and/or 
@@ -55,13 +55,14 @@ additional_salmon_index: "-k 31"
 ## For paired-end reads, these values will define the prior, which is then updated 
 ## based on the observed fragment lengths.
 ##additional_salmon_quant: "--seqBias --gcBias --fldMean 250 --fldSD 25"
-additional_salmon_quant: "--targets reference/Ensembl.GRCh38.104/Homo_sapiens.GRCh38.cdna.all_novers.fa"
+#additional_salmon_quant: "--targets /project/sequencing/IBG/RNAseq_whole_HNSCC_2013_2016/ARMOR/reference/Ensembl.GRCh38.104/Homo_sapiens.GRCh38.cdna.all_novers.fa"
+additional_salmon_quant: ""
 ##--------------------------------------------------------------------------------------------
 
 
 ## Information about the experiment
 ##--------------------------------------------------------------------------------------------
-readlength: 150
+readlength: 50
 
 ## Path to metadata text file. This file must contain at least the following columns:
 ## names: the sample identifiers = the names of the FASTQ files (excluding the _R1/R2.fastq.gz part)
@@ -74,7 +75,7 @@ metatxt: config_dir/meta.txt
 ## of the form "~ <predictors>"
 ## contrast: (comma-separated if multiple) list of contrasts to estimate in edgeR_dge.Rmd
 design: "~ 0 + group"
-contrast: Bub-Maedchen,Maedchen-Bub
+contrast: fake_1-fake_2,fake_2-fake_1
 
 ## Gene sets used for gene set analysis with camera
 ## Comma-separated list of gene set categories to test with camera. 
@@ -96,7 +97,7 @@ ncores: 8
 ## Single-end fastq files are supposed to be named 
 ## <sample-name>.<fqsuffix>.gz.
 ##---------------------------------------------------------------------------------------------
-FASTQ: /project/sequencing/IBG/WRNAseq_Dec_2018/fastq_merged
+FASTQ: /project/sequencing/IBG/RNAseq_TCGA_HNSCC_RTx_CTx/fastqs
 fqext1: R1
 fqext2: R2
 
